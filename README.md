@@ -12,28 +12,33 @@ Instead of basic CRUD, this project is engineered to solve core distributed syst
 graph TD
     Client[Web Dashboard / HTTP Client] -->|HTTP Request| API[Fastify API Server]
     
-    %% Redis Interactions
-    API -->|1. Check Idempotency / Lease Lock| Redis[(Redis Cache & Lock)]
+    subgraph Data Store & Cache
+        Redis[(Redis Cache & Locks)]
+        Postgres[(PostgreSQL ACID Engine)]
+    end
     
-    %% PostgreSQL ACID transaction
-    API -->|2. Sorted Row-Lock & Ledger Write| Postgres[(PostgreSQL ACID Engine)]
-    Postgres -->|3. Update Balance & Write double-entry| Postgres
+    subgraph Message Broker
+        Kafka{Apache Kafka Broker}
+    end
     
-    %% Write-Through Caching
-    API -->|4. Write-Through Update| Redis
+    subgraph Event Workers
+        Worker1[Notification Worker]
+        Worker2[Analytics Worker]
+        Worker3[Audit Logger Worker]
+    end
+
+    API -->|1. Idempotency & Lock| Redis
+    API -->|2. Sorted Row-Lock| Postgres
+    API -->|3. Write-Through Cache| Redis
+    API -->|4. Publish Event| Kafka
     
-    %% Kafka Streaming
-    API -->|5. Fire-and-Forget Event| Kafka{Apache Kafka Broker}
+    Kafka -->|debit/credit| Worker1
+    Kafka -->|tx volume| Worker2
+    Kafka -->|audit record| Worker3
     
-    %% Decoupled Workers
-    Kafka -->|Topic: transaction-events| Worker1[Notification Worker]
-    Kafka -->|Topic: transaction-events| Worker2[Analytics Worker]
-    Kafka -->|Topic: transaction-events| Worker3[Audit Logger Worker]
-    
-    %% Worker Writes
     Worker1 -->|Send Email| Email[Mock SMTP Server]
-    Worker2 -->|Update Total Stats| Redis
-    Worker3 -->|Append Logs| LogFile[logs/audit.log]
+    Worker2 -->|Update Stats| Redis
+    Worker3 -->|Write File| LogFile[logs/audit.log]
 ```
 
 ### Key Architectural Patterns:
