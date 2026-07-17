@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High-Throughput Wallet & Ledger System</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background decorative glows -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1>Apex Wallet Engine</h1>
+      </div>
+      <div id="user-profile" class="user-profile hidden">
+        <span id="user-email-display">user@example.com</span>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Logout</button>
+      </div>
+    </header>
+
+    <!-- Auth Container -->
+    <main id="auth-section" class="glass-card auth-card">
+      <div class="tabs">
+        <button id="tab-login" class="tab-btn active">Login</button>
+        <button id="tab-register" class="tab-btn">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <h2>Welcome Back</h2>
+        <p class="form-subtitle">Enter your credentials to access your transaction dashboard.</p>
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form hidden">
+        <h2>Create Account</h2>
+        <p class="form-subtitle">Register to instantly receive a wallet with a ₹10,000.00 mock balance.</p>
+        <div class="form-group">
+          <label for="register-email">Email Address</label>
+          <input type="email" id="register-email" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+          <label for="register-password">Password</label>
+          <input type="password" id="register-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Wallet</button>
+      </form>
+      
+      <div id="auth-message" class="alert hidden"></div>
+    </main>
+
+    <!-- Main Dashboard Section -->
+    <main id="dashboard-section" class="dashboard-grid hidden">
+      
+      <!-- Balance Card -->
+      <section class="glass-card wallet-card">
+        <div class="wallet-info">
+          <span class="wallet-tag">Active Wallet</span>
+          <h3>Total Balance</h3>
+          <div class="balance-display">
+            <span class="currency-symbol">₹</span>
+            <span id="balance-amount">0.00</span>
+          </div>
+          <p class="wallet-id-lbl">Wallet ID: <span id="wallet-id-display">...</span></p>
+        </div>
+        <div class="wallet-actions">
+          <button id="trigger-deposit-btn" class="btn btn-secondary">⚡ Deposit ₹1,000</button>
+        </div>
+      </section>
+
+      <!-- Transaction Card / Transfer Form -->
+      <section class="glass-card transfer-card">
+        <h3>Transfer Funds</h3>
+        <p class="card-subtitle">Execute an atomic double-entry transaction. Backed by SQL locks.</p>
+        <form id="transfer-form">
+          <div class="form-group">
+            <label for="transfer-email">Destination User Email</label>
+            <input type="email" id="transfer-email" required placeholder="recipient@domain.com">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transfer-amount">Amount (INR)</label>
+              <input type="number" id="transfer-amount" required min="1" step="0.01" placeholder="500.00">
+            </div>
+            <div class="form-group">
+              <label for="idempotency-key">Idempotency Key</label>
+              <input type="text" id="idempotency-key" required placeholder="Unique Key">
+            </div>
+          </div>
+          <div class="key-control">
+            <button type="button" id="regen-key-btn" class="btn-text">🔄 Regenerate Idempotency Key</button>
+          </div>
+          <button type="submit" id="transfer-submit-btn" class="btn btn-primary btn-block">Execute Transfer</button>
+        </form>
+        <div id="transfer-message" class="alert hidden"></div>
+      </section>
+
+      <!-- Server Metrics (Real-time Audit Dashboard) -->
+      <section class="glass-card metrics-card">
+        <div class="metrics-header">
+          <h3>Engine Metrics</h3>
+          <span class="live-indicator"><span class="pulse"></span> LIVE METRICS</span>
+        </div>
+        <p class="card-subtitle">Real-time statistics sourced from Kafka Consumers and PostgreSQL Pool.</p>
+        
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <span class="metric-label">Volume Processed</span>
+            <span class="metric-value" id="metrics-volume">₹0.00</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Total Transactions</span>
+            <span class="metric-value" id="metrics-count">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">DB Connection Pool</span>
+            <span class="metric-value" id="metrics-db">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="logs-container">
+          <h4>Live Consumer Events Logs</h4>
+          <div id="live-logs" class="logs-feed">
+            <div class="log-line system">Metrics monitor connected... Ready.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ledger Transaction History -->
+      <section class="glass-card history-card">
+        <h3>Immutable Ledger Logs</h3>
+        <p class="card-subtitle">Double-entry ledger records showing audit trails & running balances.</p>
+        <div class="table-container">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Tx ID</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Balance After</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="history-rows">
+              <tr>
+                <td colspan="5" class="empty-table">No transaction history.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
