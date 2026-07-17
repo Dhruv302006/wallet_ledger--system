@@ -1,6 +1,6 @@
 # High-Throughput Wallet & Ledger System
 
-A highly-optimized transactional backend engine modeled after the core payment processing pipelines of digital wallets like Stripe, Razorpay, or PayPal. 
+A highly-optimized transactional backend engine modeled after the core payment processing pipelines of digital wallets.
 
 Instead of basic CRUD, this project is engineered to solve core distributed system problems: **financial consistency**, **high-concurrency race conditions**, **idempotency**, and **latency optimization**.
 
