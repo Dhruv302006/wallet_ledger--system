@@ -11,7 +11,8 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:concurrency": "node scripts/concurrency-test.js",
     "test:concurrency-multi": "node scripts/multi-wallet-concurrency-test.js",
-    "db:clear": "node scripts/clear-data.js"
+    "db:clear": "node scripts/clear-data.js",
+    "db:seed-history": "node scripts/generate-historical-data.js"
   },
   "dependencies": {
     "@fastify/cookie": "^9.3.1",
