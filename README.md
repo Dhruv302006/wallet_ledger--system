@@ -12,16 +12,16 @@ Instead of basic CRUD, this project is engineered to solve core distributed syst
 graph TD
     Client[Web Dashboard / HTTP Client] -->|HTTP Request| API[Fastify API Server]
     
-    subgraph Data Store & Cache
+    subgraph "Data Store & Cache"
         Redis[(Redis Cache & Locks)]
         Postgres[(PostgreSQL ACID Engine)]
     end
     
-    subgraph Message Broker
+    subgraph "Message Broker"
         Kafka{Apache Kafka Broker}
     end
     
-    subgraph Event Workers
+    subgraph "Event Workers"
         Worker1[Notification Worker]
         Worker2[Analytics Worker]
         Worker3[Audit Logger Worker]
@@ -62,7 +62,7 @@ When a transfer happens, we must update the ledger, write to the audit log, and 
 ```mermaid
 graph TD
     Client[Client Browser] -->|POST /transfer| API[Fastify API]
-    subgraph Synchronous Blocking Pipeline
+    subgraph "Synchronous Blocking Pipeline"
         API -->|1. SQL Writes ~8ms| DB[(PostgreSQL)]
         API -->|2. Disk Append ~5ms| Log[Audit Log File]
         API -->|3. SMTP Mail WAN Call ~1513ms| Mail[External Mail API]
@@ -75,13 +75,13 @@ graph TD
 ```mermaid
 graph TD
     Client[Client Browser] -->|POST /transfer| API[Fastify API]
-    subgraph Non-Blocking API Pipeline
+    subgraph "Non-Blocking API Pipeline"
         API -->|1. SQL Writes ~8ms| DB[(PostgreSQL)]
         API -->|2. Kafka Publish ~2ms| Kafka{Apache Kafka}
     end
     API -->|3. Return HTTP 200 OK| Client
     
-    subgraph Decoupled Workers (Asynchronous)
+    subgraph "Decoupled Workers (Asynchronous)"
         Kafka -->|Consumer| Worker1[Notification Worker] -->|SMTP ~1513ms| Mail[External Mail API]
         Kafka -->|Consumer| Worker3[Audit Worker] -->|Append File ~5ms| Log[Audit Log File]
     end
