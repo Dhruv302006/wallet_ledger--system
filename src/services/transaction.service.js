@@ -17,8 +17,8 @@ export const transfer = async (idempotencyKey, sourceWalletId, destinationWallet
     throw new Error('Source and destination wallets must be different');
   }
 
-  // 1. Idempotency Check (Redis)
-  const idemRecord = await cacheService.checkIdempotency(idempotencyKey);
+  // 1. Idempotency Check (Redis - Atomic Check & Set NX)
+  const idemRecord = await cacheService.tryAcquireIdempotency(idempotencyKey);
   if (idemRecord) {
     if (idemRecord.status === 'pending') {
       throw new Error('Transaction is already being processed');
@@ -26,9 +26,6 @@ export const transfer = async (idempotencyKey, sourceWalletId, destinationWallet
     // Replay completed response
     return idemRecord.response;
   }
-
-  // Set idempotency key as pending in Redis
-  await cacheService.setIdempotency(idempotencyKey, 'pending');
 
   // 2. Acquire Redis distributed locks (fail fast for concurrent clicks on source wallet)
   // We lock the source wallet to prevent double-spending race conditions before they even hit the database.
@@ -41,6 +38,7 @@ export const transfer = async (idempotencyKey, sourceWalletId, destinationWallet
   const client = await pool.connect();
   
   try {
+    const dbStart = performance.now();
     await client.query('BEGIN');
 
     // 3. Prevent Deadlocks: Sort UUIDs lexicographically to guarantee consistent lock ordering
@@ -114,6 +112,8 @@ export const transfer = async (idempotencyKey, sourceWalletId, destinationWallet
     );
 
     await client.query('COMMIT');
+    const dbDuration = performance.now() - dbStart;
+    console.log(`\x1b[36m[DB Performance]\x1b[0m Transaction committed in \x1b[32m${dbDuration.toFixed(2)}ms\x1b[0m`);
 
     // 6. Write-Through cache update (Redis)
     await cacheService.setCachedBalance(sourceWalletId, newSourceBalance.toFixed(4));
@@ -193,14 +193,12 @@ export const deposit = async (idempotencyKey, walletId, amountVal, currency = 'I
     throw new Error('Invalid deposit amount');
   }
 
-  // Idempotency check
-  const idemRecord = await cacheService.checkIdempotency(idempotencyKey);
+  // Idempotency check (Atomic Check & Set NX)
+  const idemRecord = await cacheService.tryAcquireIdempotency(idempotencyKey);
   if (idemRecord) {
     if (idemRecord.status === 'pending') throw new Error('Transaction in progress');
     return idemRecord.response;
   }
-
-  await cacheService.setIdempotency(idempotencyKey, 'pending');
 
   const client = await pool.connect();
   try {

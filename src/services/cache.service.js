@@ -64,6 +64,26 @@ export const checkIdempotency = async (key) => {
 };
 
 /**
+ * Atomically try to register the idempotency key as pending using SET NX.
+ * If the key already exists, returns the existing record.
+ * If it doesn't exist, sets it to pending and returns null.
+ * @param {string} key 
+ * @returns {Promise<object|null>}
+ */
+export const tryAcquireIdempotency = async (key) => {
+  const pendingData = JSON.stringify({ status: 'pending', response: null });
+  // NX means "Set if Not Exists", PX means milliseconds TTL (24 hours)
+  const result = await redis.set(`idempotency:${key}`, pendingData, 'NX', 'EX', 86400);
+  
+  if (result === 'OK') {
+    return null; // Successfully acquired/created
+  }
+  
+  // Key already exists, retrieve and return the existing record
+  return await checkIdempotency(key);
+};
+
+/**
  * Set idempotency key state and optional response payload with a 24h TTL
  * @param {string} key 
  * @param {'pending'|'completed'} status 

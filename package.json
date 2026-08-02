@@ -12,7 +12,9 @@
     "test:concurrency": "node scripts/concurrency-test.js",
     "test:concurrency-multi": "node scripts/multi-wallet-concurrency-test.js",
     "db:clear": "node scripts/clear-data.js",
-    "db:seed-history": "node scripts/generate-historical-data.js"
+    "db:seed-history": "node scripts/generate-historical-data.js",
+    "test:benchmark": "node scripts/stress-benchmark.js",
+    "test:benchmark-latency": "node scripts/benchmark-sync-vs-async.js"
   },
   "dependencies": {
     "@fastify/cookie": "^9.3.1",
